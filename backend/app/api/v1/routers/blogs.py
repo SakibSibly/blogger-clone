@@ -6,7 +6,7 @@ from fastapi import status
 from typing import Annotated
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from app.api.models import BlogPublic, BlogBase, Blog, UserPublic, UserBase, User
+from app.api.models import BlogEdit, BlogPublic, BlogBase, Blog, User
 from app.api.db import get_session
 from app.api.v1.deps import get_current_active_user
 
@@ -40,7 +40,7 @@ async def create_blog(
 
     return db_blog
 
-@router.get("/{blog_id}")
+@router.get("/{blog_id}", response_model=BlogPublic, status_code=status.HTTP_200_OK)
 async def get_blog(
     session: Annotated[AsyncSession, Depends(get_session)],
     blog_id: uuid.UUID
@@ -49,16 +49,19 @@ async def get_blog(
     result = await session.exec(statement)
     blog = result.first()
 
+    if not blog:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Blog not found")
+
     return blog
 
-@router.patch("/{blog_id}")
+@router.patch("/{blog_id}", response_model=BlogPublic)
 async def update_blog(
     session: Annotated[AsyncSession, Depends(get_session)],
     blog_id: uuid.UUID,
-    blog_update: BlogBase,
+    blog_update: BlogEdit,
     current_user: Annotated[User, Depends(get_current_active_user)]
 ):
-    statement = select(Blog).where(Blog.author_id == current_user.id and Blog.id == blog_id)
+    statement = select(Blog).where(Blog.author_id == current_user.id, Blog.id == blog_id)
     result = await session.exec(statement)
     blog = result.first()
 
@@ -69,7 +72,8 @@ async def update_blog(
     for key, value in update_data.items():
         setattr(blog, key, value)
 
-    blog.updated_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    if blog_update.published is not None and blog_update.published:
+        blog.updated_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     session.add(blog)
     await session.commit()
@@ -84,7 +88,7 @@ async def delete_blog(
     blog_id: uuid.UUID,
     current_user: Annotated[User, Depends(get_current_active_user)]
 ):
-    statement = select(Blog).where(Blog.author_id == current_user.id and Blog.id == blog_id)
+    statement = select(Blog).where(Blog.author_id == current_user.id, Blog.id == blog_id)
     result = await session.exec(statement)
     blog = result.first()
 
@@ -95,3 +99,47 @@ async def delete_blog(
     await session.commit()
 
     return {"message": "Blog deleted successfully"}
+
+
+@router.post("/{blog_id}/publish", response_model=BlogPublic)
+async def publish_blog(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    blog_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_active_user)]
+):
+    statement = select(Blog).where(Blog.author_id == current_user.id, Blog.id == blog_id)
+    result = await session.exec(statement)
+    blog = result.first()
+
+    if not blog:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Blog not found")
+
+    blog.published = True
+
+    session.add(blog)
+    await session.commit()
+    await session.refresh(blog)
+
+    return blog
+
+@router.post("/{blog_id}/unpublish", response_model=BlogPublic)
+async def unpublish_blog(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    blog_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_active_user)]
+):
+    statement = select(Blog).where(Blog.author_id == current_user.id, Blog.id == blog_id)
+    result = await session.exec(statement)
+    blog = result.first()
+
+    if not blog:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Blog not found")
+
+    blog.published = False
+    blog.updated_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+    session.add(blog)
+    await session.commit()
+    await session.refresh(blog)
+
+    return blog

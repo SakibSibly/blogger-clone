@@ -65,6 +65,10 @@ class BlogBase(SQLModel):
     content: str = Field(default=None)
     published: bool = Field(default=False)
 
+class BlogEdit(BlogBase):
+    title: str | None = Field(default=None, max_length=255)
+    content: str | None = Field(default=None)
+
 
 class Blog(BlogBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)
