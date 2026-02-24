@@ -1,0 +1,14 @@
+# Environment var and virtual environment
+.env
+.venv
+
+# Python cache files
+__pycache__/
+*.pyc
+
+# Database files
+db.sqlite3
+*.db
+
+# Backend static files
+media/
