@@ -1,4 +1,5 @@
 import os
+import uuid
 from fastapi import APIRouter
 from fastapi import status, HTTPException, Depends
 from sqlmodel import Session, select
@@ -61,9 +62,9 @@ async def login(session: Annotated[Session, Depends(get_session)], user: UserLog
             detail="Incorrect username or password"
         )
     
-    # Create tokens
-    access_token = create_access_token(data={"sub": user.username})
-    refresh_token = create_refresh_token(data={"sub": user.username})
+    # Create tokens — use the opaque UUID as sub to avoid exposing PII
+    access_token = create_access_token(data={"sub": str(db_user.id)})
+    refresh_token = create_refresh_token(data={"sub": str(db_user.id)})
     
     return TokenResponse(
         access_token=access_token,
@@ -85,16 +86,16 @@ async def refresh_token(token_data: TokenRefresh):
             detail="Invalid token type"
         )
     
-    username: str = payload.get("sub")
-    if username is None:
+    user_id: str = payload.get("sub")
+    if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials"
         )
     
     # Create new tokens
-    access_token = create_access_token(data={"sub": username})
-    # new_refresh_token = create_refresh_token(data={"sub": username})
+    access_token = create_access_token(data={"sub": user_id})
+    # new_refresh_token = create_refresh_token(data={"sub": user_id})
     
     return TokenResponse(
         access_token=access_token,
@@ -152,16 +153,14 @@ async def google_login(session: Annotated[Session, Depends(get_session)], body: 
     db_user = result.first()
 
     if not db_user:
-        # Derive a unique username from the email prefix
+        # Derive a unique username from the email prefix with a random hex suffix
+        # to avoid sequential DB queries and potential infinite loops
         base_username = email.split("@")[0]
-        username = base_username
-        counter = 1
-        while True:
+        username = f"{base_username}_{uuid.uuid4().hex[:8]}"
+        check = await session.exec(select(User).where(User.username == username))
+        while check.first():  # extremely unlikely; re-roll on collision
+            username = f"{base_username}_{uuid.uuid4().hex[:8]}"
             check = await session.exec(select(User).where(User.username == username))
-            if not check.first():
-                break
-            username = f"{base_username}{counter}"
-            counter += 1
 
         db_user = User(
             username=username,
@@ -173,7 +172,7 @@ async def google_login(session: Annotated[Session, Depends(get_session)], body: 
         await session.commit()
         await session.refresh(db_user)
 
-    access_token = create_access_token(data={"sub": db_user.username})
-    refresh_token = create_refresh_token(data={"sub": db_user.username})
+    access_token = create_access_token(data={"sub": str(db_user.id)})
+    refresh_token = create_refresh_token(data={"sub": str(db_user.id)})
 
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)

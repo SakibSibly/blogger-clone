@@ -1,5 +1,6 @@
 import os
 import hashlib
+import uuid
 import jwt
 from datetime import datetime, timedelta, timezone
 from fastapi import Depends, HTTPException, status
@@ -82,8 +83,8 @@ async def get_current_user(session: Annotated[Session, Depends(get_session)], cr
             detail="Invalid token type"
         )
 
-    username: str = payload.get("sub")
-    if username is None:
+    user_id: str = payload.get("sub")
+    if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials"
@@ -99,8 +100,15 @@ async def get_current_user(session: Annotated[Session, Depends(get_session)], cr
             detail="Token has been revoked"
         )
 
-    # Get user from database
-    result = await session.exec(select(User).where(User.username == username))
+    # Get user from database using opaque UUID — no PII in token
+    try:
+        parsed_id = uuid.UUID(user_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials"
+        )
+    result = await session.exec(select(User).where(User.id == parsed_id))
     user = result.first()
     if user is None:
         raise HTTPException(
