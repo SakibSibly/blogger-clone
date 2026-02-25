@@ -1,11 +1,16 @@
+import os
 from fastapi import APIRouter
 from fastapi import status, HTTPException, Depends
 from sqlmodel import Session, select
+from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
-from app.api.models import User, UserBase, UserWithBlogs, UserCreate, UserLogin, TokenResponse, TokenRefresh, TokenBlacklist
+from app.api.models import User, UserBase, UserWithBlogs, UserCreate, UserLogin, TokenResponse, TokenRefresh, TokenBlacklist, GoogleLoginRequest
 from app.api.v1.deps import decode_token, get_current_active_user, hash_password, get_current_user, verify_password, create_access_token, create_refresh_token, decode_token
 from app.api.db import get_session
 from typing import Annotated
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 router = APIRouter(
     prefix="/auth",
@@ -115,3 +120,60 @@ async def logout(session: Annotated[Session, Depends(get_session)], token_data: 
 async def read_users_me(current_user: Annotated[User, Depends(get_current_active_user)]):
     """Get current user information (protected route)."""
     return current_user
+
+
+@router.post("/google", response_model=TokenResponse)
+async def google_login(session: Annotated[Session, Depends(get_session)], body: GoogleLoginRequest):
+    """Login or register via Google OAuth credential (ID token)."""
+    if not GOOGLE_CLIENT_ID:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Google OAuth is not configured on the server"
+        )
+
+    try:
+        idinfo = id_token.verify_oauth2_token(
+            body.credential,
+            google_requests.Request(),
+            GOOGLE_CLIENT_ID
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid Google token: {str(e)}"
+        )
+
+    email: str = idinfo["email"]
+    full_name: str | None = idinfo.get("name")
+    google_sub: str = idinfo["sub"]
+
+    # Find existing user by email
+    result = await session.exec(select(User).where(User.email == email))
+    db_user = result.first()
+
+    if not db_user:
+        # Derive a unique username from the email prefix
+        base_username = email.split("@")[0]
+        username = base_username
+        counter = 1
+        while True:
+            check = await session.exec(select(User).where(User.username == username))
+            if not check.first():
+                break
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        db_user = User(
+            username=username,
+            email=email,
+            full_name=full_name,
+            hashed_password=hash_password(google_sub),
+        )
+        session.add(db_user)
+        await session.commit()
+        await session.refresh(db_user)
+
+    access_token = create_access_token(data={"sub": db_user.username})
+    refresh_token = create_refresh_token(data={"sub": db_user.username})
+
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token)

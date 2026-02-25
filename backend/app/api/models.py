@@ -56,6 +56,10 @@ class TokenBlacklist(SQLModel, table=True):
     token: str = Field(index=True, unique=True)
 
 
+class GoogleLoginRequest(SQLModel):
+    credential: str
+
+
 class UserStatusUpdate(SQLModel):
     is_active: bool
 
