@@ -78,6 +78,7 @@ async def list_all_hero_cards(
     hero_cards = result.all()
     return hero_cards
 
+
 @router.post("/hero-cards", response_model=HeroCardBase)
 async def create_hero_card(
     hero_card_data: HeroCardBase,
@@ -92,6 +93,67 @@ async def create_hero_card(
     await session.commit()
     await session.refresh(hero_card)
     return hero_card
+
+
+@router.put("/hero-cards/{card_id}", response_model=HeroCardBase)
+async def update_hero_card(
+    card_id: uuid.UUID,
+    hero_card_data: HeroCardBase,
+    session: Annotated[Session, Depends(get_session)]
+):
+    """
+    Update an existing hero card by ID.
+    Only accessible by superusers.
+    """
+    result = await session.exec(select(HeroCard).where(HeroCard.id == card_id))
+    hero_card = result.first()
+    
+    if not hero_card:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Hero card not found"
+        )
+    
+    # Update the hero card fields
+    for field, value in hero_card_data.model_dump().items():
+        setattr(hero_card, field, value)
+    
+    session.add(hero_card)
+    await session.commit()
+    await session.refresh(hero_card)
+    
+    return hero_card
+
+
+@router.patch("/hero-cards/{card_id}", response_model=HeroCardBase)
+async def partial_update_hero_card(
+    card_id: uuid.UUID,
+    hero_card_data: HeroCardBase,
+    session: Annotated[Session, Depends(get_session)]
+):
+    """
+    Partially update an existing hero card by ID.
+    Only accessible by superusers.
+    """
+    result = await session.exec(select(HeroCard).where(HeroCard.id == card_id))
+    hero_card = result.first()
+    
+    if not hero_card:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Hero card not found"
+        )
+    
+    # Update only the provided fields
+    for field, value in hero_card_data.model_dump(exclude_unset=True).items():
+        setattr(hero_card, field, value)
+    
+    session.add(hero_card)
+    await session.commit()
+    await session.refresh(hero_card)
+    
+    return hero_card
+
 
 @router.delete("/hero-cards/{card_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_hero_card(
