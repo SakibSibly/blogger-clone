@@ -1,4 +1,5 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
+import { setApiCallbacks } from "../api/api";
 
 const AuthContext = createContext(null);
 
@@ -21,10 +22,24 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem(STORAGE_KEY);
     };
 
+    /** Called by the Axios interceptor when a silent token refresh succeeds. */
+    const updateTokens = (newTokens) => {
+        setTokens(newTokens);
+    };
+
+    // Register callbacks with the Axios interceptor once on mount
+    useEffect(() => {
+        setApiCallbacks({
+            onTokenRefreshed: updateTokens,
+            onLogout: logout,
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const isAuthenticated = !!user;
 
     return (
-        <AuthContext.Provider value={{ user, tokens, login, logout, isAuthenticated }}>
+        <AuthContext.Provider value={{ user, tokens, login, logout, updateTokens, isAuthenticated }}>
             {children}
         </AuthContext.Provider>
     );
