@@ -88,3 +88,16 @@ class BlogPublic(BlogBase):
     author_id: uuid.UUID
     created_at: str
     updated_at: str
+
+
+class HeroCardBase(SQLModel):
+    title: str = Field(default=None, max_length=255)
+    subtitle: str = Field(default=None, max_length=1000)
+    image_src: str = Field(default=None, max_length=500)
+    image_alt: str = Field(default=None, max_length=255)
+    image_on_right: bool = Field(default=False)
+    cta_text: str = Field(default="Create Your Blog", max_length=100)
+    bg_class: str = Field(default="bg-white", max_length=100)
+    
+class HeroCard(HeroCardBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True, index=True)

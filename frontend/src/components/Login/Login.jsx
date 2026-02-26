@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+import api from '../../api/api';
 
 const Login = () => {
     const { login } = useAuth();
@@ -15,35 +14,23 @@ const Login = () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await fetch(`${API_URL}/api/v1/auth/google`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ credential: credentialResponse.credential }),
+            const { data: tokens } = await api.post('/api/v1/auth/google', {
+                credential: credentialResponse.credential,
             });
 
-            if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.detail || 'Google login failed');
-            }
-
-            const tokens = await res.json();
-
-            // Fetch logged-in user profile
-            const meRes = await fetch(`${API_URL}/api/v1/auth/users/me`, {
+            // Fetch logged-in user profile (access token is auto-attached by interceptor
+            // after login stores it, but we set it manually here since we just got it)
+            const { data: userData } = await api.get('/api/v1/auth/users/me', {
                 headers: { Authorization: `Bearer ${tokens.access_token}` },
             });
-
-            if (!meRes.ok) {
-                throw new Error('Failed to fetch user profile');
-            }
-
-            const userData = await meRes.json();
 
             // Save user + tokens in context (and localStorage)
             login(userData, tokens);
             navigate('/home');
         } catch (err) {
-            setError(err.message);
+            const message =
+                err.response?.data?.detail || err.message || 'Google login failed';
+            setError(message);
         } finally {
             setLoading(false);
         }
