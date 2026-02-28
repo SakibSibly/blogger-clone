@@ -7,10 +7,10 @@ const Navbar = () => {
 
   return (
     <nav className="flex justify-between p-4">
-      <div className='flex items-center space-x-2'>
+      <Link to="/" className='flex items-center space-x-2'>
         <img src={login} alt="Blogger Clone" className="w-9" />
         <span className="font-normal text-xl">Blogger</span>
-      </div>
+      </Link>
       {!isAuthenticated && (
         <div className="flex items-center">
           <ul>

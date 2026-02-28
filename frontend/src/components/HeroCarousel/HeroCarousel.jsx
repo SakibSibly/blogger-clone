@@ -219,25 +219,17 @@ const DecorationShape = ({ type, style }) => {
 
 /* ── Blog preview mockup ── */
 const BlogPreview = ({ slide }) => (
-  <div
-    style={{
-      background: "white",
-      borderRadius: "6px 6px 0 0",
-      width: "100%",
-      overflow: "hidden",
-      boxShadow: "0 -8px 40px rgba(0,0,0,0.3)",
-    }}
-  >
+  <div className="bg-white rounded-t-md overflow-hidden shadow-[0_-8px_40px_rgba(0,0,0,0.3)]">
     {/* Polka-dot / dotted header strip */}
     <div
       style={{
         background: slide.accentBg,
-        padding: "18px 20px 14px",
         backgroundImage: `radial-gradient(circle, ${slide.previewDotColor} 2px, transparent 2px)`,
         backgroundSize: "14px 14px",
       }}
+      className="px-5 pt-4.5 pb-3.5"
     >
-      <div style={{ textAlign: "center" }}>
+      <div className="text-center">
         <span style={slide.blogTitleStyle}>
           {slide.id === 1 && <span>&#9733;</span>}
           {slide.blogTitle}
@@ -246,16 +238,12 @@ const BlogPreview = ({ slide }) => (
       </div>
     </div>
     {/* Blog body */}
-    <div style={{ padding: "12px 18px", background: "#fff" }}>
-      <p style={{ fontSize: "11px", color: "#888", marginBottom: "4px" }}>{slide.blogDate}</p>
-      <p style={{ fontSize: "14px", color: "#333", fontWeight: "500", marginBottom: "8px" }}>{slide.blogPost}</p>
+    <div className="px-4.5 py-3 bg-white">
+      <p className="text-[11px] text-gray-400 mb-1">{slide.blogDate}</p>
+      <p className="text-sm text-gray-700 font-medium mb-2">{slide.blogPost}</p>
       <div
-        style={{
-          width: "100%",
-          height: "70px",
-          background: slide.blogImgColor,
-          borderRadius: "3px",
-        }}
+        className="w-full h-20 rounded-sm"
+        style={{ background: slide.blogImgColor }}
       />
     </div>
   </div>
@@ -292,13 +280,13 @@ const HeroCarousel = ({ ctaText = "Create your blog", ctaLink = "/login" }) => {
   }, [current, animating]);
 
   return (
-    <div className="hero-carousel">
+    <div className="relative w-full h-screen overflow-hidden">
       {/* ── Slides ── */}
       {slides.map((slide, i) => {
-        let cls = "hero-carousel__slide slide-hidden";
-        if (i === current && prev === null) cls = "hero-carousel__slide slide-active";
-        else if (i === current && prev !== null) cls = "hero-carousel__slide slide-enter";
-        else if (i === prev) cls = "hero-carousel__slide slide-exit";
+        let cls = "absolute inset-0 w-full h-full z-0 translate-y-full invisible";
+        if (i === current && prev === null) cls = "absolute inset-0 w-full h-full z-[2] translate-y-0";
+        else if (i === current && prev !== null) cls = "absolute inset-0 w-full h-full slide-enter";
+        else if (i === prev) cls = "absolute inset-0 w-full h-full slide-exit";
 
         return (
           <div
@@ -306,13 +294,13 @@ const HeroCarousel = ({ ctaText = "Create your blog", ctaLink = "/login" }) => {
             className={cls}
             style={{ background: slide.bg }}
           >
-            <div className="hero-carousel__slide-inner">
+            <div className="w-full h-full relative overflow-hidden">
               {/* Decorative shapes */}
               {slide.decorations.map((d, di) => (
                 <DecorationShape key={di} type={d.type} style={d.style} />
               ))}
               {/* Blog preview at bottom */}
-              <div className="hero-carousel__preview">
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-145 max-w-[90vw]">
                 <BlogPreview slide={slide} />
               </div>
             </div>
@@ -321,59 +309,29 @@ const HeroCarousel = ({ ctaText = "Create your blog", ctaLink = "/login" }) => {
       })}
 
       {/* ── Fixed text overlay (always on top) ── */}
-      <div className="hero-carousel__overlay">
-        <h1
-          style={{
-            color: "white",
-            fontSize: "clamp(2rem, 5vw, 3.5rem)",
-            fontWeight: "300",
-            textAlign: "center",
-            letterSpacing: "-0.5px",
-            lineHeight: 1.2,
-            margin: "0 20px 14px",
-            textShadow: "0 2px 8px rgba(0,0,0,0.15)",
-          }}
-        >
+      <div className="absolute inset-0 z-10 flex flex-col items-center justify-center pointer-events-none pb-20">
+        <h1 className="text-white text-center font-light leading-tight mx-5 mb-3.5 text-4xl md:text-5xl lg:text-6xl [text-shadow:0_2px_8px_rgba(0,0,0,0.15)] tracking-tight">
           Publish your passions, your way
         </h1>
-        <p
-          style={{
-            color: "rgba(255,255,255,0.9)",
-            fontSize: "clamp(0.95rem, 2vw, 1.2rem)",
-            textAlign: "center",
-            marginBottom: "32px",
-            textShadow: "0 1px 4px rgba(0,0,0,0.15)",
-          }}
-        >
+        <p className="text-white/90 text-center mb-8 text-base md:text-lg [text-shadow:0_1px_4px_rgba(0,0,0,0.15)]">
           Create a unique and beautiful blog easily.
         </p>
         <Link
           to={ctaLink}
-          style={{
-            background: "#ff8000",
-            color: "white",
-            padding: "14px 28px",
-            borderRadius: "4px",
-            fontWeight: "bold",
-            fontSize: "0.85rem",
-            letterSpacing: "1.5px",
-            textTransform: "uppercase",
-            textDecoration: "none",
-            transition: "background 0.2s",
-          }}
-          onMouseEnter={(e) => (e.target.style.background = "#ff9224")}
-          onMouseLeave={(e) => (e.target.style.background = "#ff8000")}
+          className="bg-[#ff8000] hover:bg-[#ff9224] text-white py-3.5 px-7 rounded font-bold text-sm tracking-[1.5px] uppercase no-underline transition-colors pointer-events-auto"
         >
           {ctaText}
         </Link>
       </div>
 
       {/* ── Dot indicators ── */}
-      <div className="hero-carousel__dots">
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
         {slides.map((_, i) => (
           <button
             key={i}
-            className={`hero-carousel__dot${i === current ? " active" : ""}`}
+            className={`w-2.5 h-2.5 rounded-full border-0 cursor-pointer p-0 transition-all ${
+              i === current ? "bg-white/95 scale-125" : "bg-white/45"
+            }`}
             onClick={() => goToSlide(i)}
             aria-label={`Go to slide ${i + 1}`}
           />
