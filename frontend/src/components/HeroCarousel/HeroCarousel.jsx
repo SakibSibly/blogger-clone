@@ -280,7 +280,10 @@ const HeroCarousel = ({ ctaText = "Create your blog", ctaLink = "#" }) => {
   }, [current, animating]);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div
+      className="relative w-full h-screen overflow-hidden"
+      style={{ background: slides[current].bg, transition: "background 0.75s cubic-bezier(0.4, 0, 0.2, 1)" }}
+    >
       {/* ── Slides ── */}
       {slides.map((slide, i) => {
         let cls = "absolute inset-0 w-full h-full z-0 translate-y-full invisible";

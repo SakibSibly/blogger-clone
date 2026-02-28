@@ -4,10 +4,10 @@
   to   { transform: translateY(0%);   }
 }
 
-/* Slide exiting to top */
-@keyframes slideExitToTop {
-  from { transform: translateY(0%);    }
-  to   { transform: translateY(-100%); }
+/* Slide exiting to bottom */
+@keyframes slideExitToBottom {
+  from { transform: translateY(0%);   }
+  to   { transform: translateY(100%); }
 }
 
 .slide-enter {
@@ -16,6 +16,6 @@
 }
 
 .slide-exit {
-  animation: slideExitToTop 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: slideExitToBottom 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   z-index: 1;
 }
