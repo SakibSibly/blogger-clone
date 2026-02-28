@@ -7,7 +7,10 @@ const LandingPage = () => {
 
   useEffect(() => {
     api.get("/api/v1/hero-cards/")
-      .then((res) => setHeroCards(res.data))
+      .then((res) => {
+        res.data.sort((a, b) => a.serial_number - b.serial_number); // Sort by serial_number
+        setHeroCards(res.data);
+      })
       .catch((err) => console.error("Failed to load hero cards:", err));
   }, []);
 
