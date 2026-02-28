@@ -52,8 +52,8 @@ const HeroSection = ({
       <div
         className={`absolute inset-y-0 w-32 from-current to-transparent ${
           imageOnRight
-            ? "left-0 bg-gradient-to-r"
-            : "right-0 bg-gradient-to-l"
+            ? "left-0 bg-linear-to-r"
+            : "right-0 bg-linear-to-l"
         }`}
         style={{ color: bgClass }}
       />

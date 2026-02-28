@@ -251,7 +251,7 @@ const BlogPreview = ({ slide }) => (
 
 const INTERVAL_MS = 4000;
 
-const HeroCarousel = ({ ctaText = "Create your blog", ctaLink = "/login" }) => {
+const HeroCarousel = ({ ctaText = "Create your blog", ctaLink = "#" }) => {
   const [current, setCurrent] = useState(0);
   const [prev, setPrev] = useState(null);
   const [animating, setAnimating] = useState(false);
