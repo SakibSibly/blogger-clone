@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import HeroSection from "../HeroSection/HeroSection";
+import HeroCarousel from "../HeroCarousel/HeroCarousel";
 import api from "../../api/api";
 
 const LandingPage = () => {
@@ -16,6 +17,7 @@ const LandingPage = () => {
 
   return (
     <div>
+      <HeroCarousel />
       {heroCards.map((card, index) => (
         <HeroSection
           key={index}

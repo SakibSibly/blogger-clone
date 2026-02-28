@@ -1,0 +1,120 @@
+.hero-carousel {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Fixed text overlay — always on top of everything */
+.hero-carousel__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  padding-bottom: 80px;
+}
+
+.hero-carousel__overlay button {
+  pointer-events: all;
+}
+
+/* Each slide sits absolutely on top of each other */
+.hero-carousel__slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Slide entering from bottom */
+@keyframes slideEnterFromBottom {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0%);
+  }
+}
+
+/* Slide exiting to top */
+@keyframes slideExitToTop {
+  from {
+    transform: translateY(0%);
+  }
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+.slide-enter {
+  animation: slideEnterFromBottom 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  z-index: 2;
+}
+
+.slide-exit {
+  animation: slideExitToTop 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  z-index: 1;
+}
+
+.slide-active {
+  z-index: 2;
+  transform: translateY(0%);
+}
+
+.slide-hidden {
+  z-index: 0;
+  transform: translateY(100%);
+  visibility: hidden;
+}
+
+/* Blog preview image container at bottom */
+.hero-carousel__preview {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 420px;
+  max-width: 85vw;
+}
+
+/* Decorative dots pattern */
+.hero-carousel__slide-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dot indicators */
+.hero-carousel__dots {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+}
+
+.hero-carousel__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+  padding: 0;
+}
+
+.hero-carousel__dot.active {
+  background: rgba(255, 255, 255, 0.95);
+  transform: scale(1.25);
+}
