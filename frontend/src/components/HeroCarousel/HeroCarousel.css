@@ -1,0 +1,21 @@
+/* Slide entering from bottom */
+@keyframes slideEnterFromBottom {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0%);   }
+}
+
+/* Slide exiting to bottom */
+@keyframes slideExitToBottom {
+  from { transform: translateY(0%);   }
+  to   { transform: translateY(100%); }
+}
+
+.slide-enter {
+  animation: slideEnterFromBottom 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  z-index: 2;
+}
+
+.slide-exit {
+  animation: slideExitToBottom 0.75s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  z-index: 1;
+}

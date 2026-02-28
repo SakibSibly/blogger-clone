@@ -4,11 +4,11 @@ import Footer from "../components/Footer/Footer";
 
 const Layout = () => {
     return (
-        <div  style={{fontFamily: 'Arial'}}>
+        <div style={{fontFamily: 'Arial'}}>
             <Navbar />
-                <main>
-                    <Outlet />
-                </main>
+            <main>
+                <Outlet />
+            </main>
             <Footer />
         </div>
     );
