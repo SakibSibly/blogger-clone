@@ -14,7 +14,7 @@ router = APIRouter(
 )
 
 
-@router.patch("/users/{user_id}/status", response_model=UserAdminDisplay)
+@router.patch("/users/{user_id}/status", response_model=UserAdminDisplay, status_code=status.HTTP_200_OK)
 async def update_user_status(
     user_id: uuid.UUID,
     status_update: UserStatusUpdate,
@@ -79,7 +79,7 @@ async def list_all_hero_cards(
     return hero_cards
 
 
-@router.post("/hero-cards", response_model=HeroCardBase)
+@router.post("/hero-cards", response_model=HeroCardBase, status_code=status.HTTP_201_CREATED)
 async def create_hero_card(
     hero_card_data: HeroCardBase,
     session: Annotated[Session, Depends(get_session)]
@@ -125,7 +125,7 @@ async def update_hero_card(
     return hero_card
 
 
-@router.patch("/hero-cards/{card_id}", response_model=HeroCardBase)
+@router.patch("/hero-cards/{card_id}", response_model=HeroCardBase, status_code=status.HTTP_200_OK)
 async def partial_update_hero_card(
     card_id: uuid.UUID,
     hero_card_data: HeroCardBase,

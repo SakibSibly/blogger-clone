@@ -91,6 +91,7 @@ class BlogPublic(BlogBase):
 
 
 class HeroCardBase(SQLModel):
+    serial_number: int | None = Field(default=None, index=True)
     title: str = Field(default=None, max_length=255)
     subtitle: str = Field(default=None, max_length=1000)
     image_src: str = Field(default=None, max_length=500)
